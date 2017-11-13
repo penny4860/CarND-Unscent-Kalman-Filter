@@ -54,27 +54,12 @@ UKF::UKF() {
 
   // initially set to false, set to true in first call of ProcessMeasurement
   is_initialized_ = false;
-  Xsig_pred_ = MatrixXd(5, 2*7+1);
-
   // State dimension
   n_x_ = 5;
   // Augmented state dimension
   n_aug_ = 7;
-  lambda_ = n_aug - 3;
-
-
-//  ///* time when the state is true, in us
-//  long long time_us_;
-//
-//  ///* Weights of sigma points
-//  VectorXd weights_;
-//
-//
-//  ///* Sigma point spreading parameter
-//  double lambda_;
-
-
-
+  // Sigma point spreading parameter
+  lambda_ = 3 - n_aug_;
 }
 
 UKF::~UKF() {}
