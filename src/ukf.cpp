@@ -51,6 +51,15 @@ UKF::UKF() {
 
   Hint: one or more values initialized above might be wildly off...
   */
+
+  // initially set to false, set to true in first call of ProcessMeasurement
+  is_initialized_ = false;
+  // State dimension
+  n_x_ = 5;
+  // Augmented state dimension
+  n_aug_ = 7;
+  // Sigma point spreading parameter
+  lambda_ = 3 - n_aug_;
 }
 
 UKF::~UKF() {}
