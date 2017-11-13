@@ -23,6 +23,7 @@ UKF::UKF() {
   // initial covariance matrix
   P_ = MatrixXd(5, 5);
 
+  // Todo : std_a_, std_yawdd_ parameter tuning
   // Process noise standard deviation longitudinal acceleration in m/s^2
   std_a_ = 30;
 
