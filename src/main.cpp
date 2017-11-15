@@ -1,117 +1,125 @@
-// reading a text file
-#include <iostream>
+// reading a text file //
 #include <fstream>
-#include <string>
+#include <iostream>
 #include <sstream>
+#include <string>
 
 #include <math.h>
-#include "ukf.h"
 #include "tools.h"
+#include "ukf.h"
 
 using namespace std;
 
-int main () {
-  string line;
-  ifstream myfile ("data/obj_pose-laser-radar-synthetic-input.txt");
+int main() {
+    string line;
+    ifstream myfile("data/obj_pose-laser-radar-synthetic-input.txt");
 
-  // Create a Kalman Filter instance
-  UKF ukf;
+    // Create a Kalman Filter instance ////
+    UKF ukf;
 
-  // used to compute the RMSE later
-  Tools tools;
-  vector<VectorXd> estimations;
-  vector<VectorXd> ground_truth;
+    // used to compute the RMSE later
+    Tools tools;
+    vector<VectorXd> estimations;
+    vector<VectorXd> ground_truth;
 
-  int count = 0;
+    int count = 0;
 
-  if (myfile.is_open())
-  {
-    while ( getline (myfile,line) )
-    {
-		std::stringstream linestream(line);
-		std::string         data;
+    if (myfile.is_open()) {
+        while (getline(myfile, line)) {
+            std::stringstream linestream(line);
+            std::string data;
 
-		string sensor;
-		std::getline(linestream, data, '\t');  // read up-to the first tab (discard tab).
-		sensor = line[0];
+            string sensor;
+            std::getline(linestream, data,
+                         '\t');  // read up-to the first tab (discard tab).
+            sensor = line[0];
 
-		// Read the integers using the operator >>
-        MeasurementPackage meas_package;
-        long long timestamp;
-        float x_gt, y_gt, vx_gt, vy_gt;
+            // Read the integers using the operator >>
+            MeasurementPackage meas_package;
+            long long timestamp;
+            float x_gt, y_gt, vx_gt, vy_gt;
 
-    	if (sensor.compare("R") == 0)
-    	{
-    		float ro;
-    		float theta;
-    		float ro_dot;
+            if (sensor.compare("R") == 0) {
+                float ro;
+                float theta;
+                float ro_dot;
 
-    		linestream >> ro >> theta >> ro_dot >> timestamp >> x_gt >> y_gt >> vx_gt >> vy_gt;
-//        	cout << "sensor=" << sensor << " rho=" <<  ro <<
-//        			" theta=" << theta << " vel=" << ro_dot <<
-//					" time=" << timestamp <<
-//					" x_gt=" << x_gt << " y_gt=" << y_gt << " vx_gt=" << vx_gt << " vy_gt=" << vy_gt << "\n";
+                linestream >> ro >> theta >> ro_dot >> timestamp >> x_gt >>
+                    y_gt >> vx_gt >> vy_gt;
+                //        	cout << "sensor=" << sensor << " rho=" <<  ro <<
+                //        			" theta=" << theta << " vel=" <<
+                //        ro_dot <<
+                //					" time=" << timestamp <<
+                //					" x_gt=" << x_gt << "
+                // y_gt="
+                //<<  y_gt << " vx_gt=" << vx_gt << " vy_gt=" << vy_gt << "\n";
 
-            meas_package.sensor_type_ = MeasurementPackage::RADAR;
-            meas_package.raw_measurements_ = VectorXd(3);
-            meas_package.raw_measurements_ << ro,theta, ro_dot;
-            meas_package.timestamp_ = timestamp;
-    	}
-    	else
-    	{
-    		float px;
-    		float py;
+                meas_package.sensor_type_ = MeasurementPackage::RADAR;
+                meas_package.raw_measurements_ = VectorXd(3);
+                meas_package.raw_measurements_ << ro, theta, ro_dot;
+                meas_package.timestamp_ = timestamp;
+            } else {
+                float px;
+                float py;
 
-    		linestream >> px >> py >> timestamp >> x_gt >> y_gt >> vx_gt >> vy_gt;
-//        	cout << "sensor=" << sensor << " px=" <<  px << " py=" << py << " time=" << timestamp <<
-//					" x_gt=" << x_gt << " y_gt=" << y_gt << " vx_gt=" << vx_gt << " vy_gt=" << vy_gt << "\n";
+                linestream >> px >> py >> timestamp >> x_gt >> y_gt >> vx_gt >>
+                    vy_gt;
+                //        	cout << "sensor=" << sensor << " px=" <<  px <<
+                //        " py=" << py << " time=" << timestamp <<
+                //					" x_gt=" << x_gt << "
+                // y_gt="
+                //<<  y_gt << " vx_gt=" << vx_gt << " vy_gt=" << vy_gt << "\n";
 
-            meas_package.sensor_type_ = MeasurementPackage::LASER;
-            meas_package.raw_measurements_ = VectorXd(2);
-            meas_package.raw_measurements_ << px, py;
-            meas_package.timestamp_ = timestamp;
-    	}
+                meas_package.sensor_type_ = MeasurementPackage::LASER;
+                meas_package.raw_measurements_ = VectorXd(2);
+                meas_package.raw_measurements_ << px, py;
+                meas_package.timestamp_ = timestamp;
+            }
 
-        VectorXd gt_values(4);
-        gt_values(0) = x_gt;
-        gt_values(1) = y_gt;
-        gt_values(2) = vx_gt;
-        gt_values(3) = vy_gt;
-        ground_truth.push_back(gt_values);
+            VectorXd gt_values(4);
+            gt_values(0) = x_gt;
+            gt_values(1) = y_gt;
+            gt_values(2) = vx_gt;
+            gt_values(3) = vy_gt;
+            ground_truth.push_back(gt_values);
 
-          //Call ProcessMeasurment(meas_package) for Kalman filter
-        ukf.ProcessMeasurement(meas_package);
+            // Call ProcessMeasurment(meas_package) for Kalman filter
+            ukf.ProcessMeasurement(meas_package);
 
-        //Push the current estimated x,y positon from the Kalman filter's state vector
+            // Push the current estimated x,y positon from the Kalman filter's
+            // state vector
 
-        VectorXd estimate(4);
+            VectorXd estimate(4);
 
-        double p_x = ukf.x_(0);
-        double p_y = ukf.x_(1);
-        double v  = ukf.x_(2);
-        double yaw = ukf.x_(3);
+            double p_x = ukf.x_(0);
+            double p_y = ukf.x_(1);
+            double v = ukf.x_(2);
+            double yaw = ukf.x_(3);
 
-        double v1 = cos(yaw)*v;
-        double v2 = sin(yaw)*v;
+            double v1 = cos(yaw) * v;
+            double v2 = sin(yaw) * v;
 
-        estimate(0) = p_x;
-        estimate(1) = p_y;
-        estimate(2) = v1;
-        estimate(3) = v2;
+            estimate(0) = p_x;
+            estimate(1) = p_y;
+            estimate(2) = v1;
+            estimate(3) = v2;
 
-        estimations.push_back(estimate);
+            estimations.push_back(estimate);
 
-        VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
+            VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
 
-        cout << count << "	RMSE:    "<< RMSE(0) << ", " << RMSE(1) << ", " << RMSE(2) << ", " << RMSE(3) << "\n";
-//        498	RMSE:    0.0973178, 0.0854597, 0.451267, 0.439935
-//        499	RMSE:    0.0972256, 0.0853761, 0.450855, 0.439588
-        count++;
+            cout << count << "	RMSE:    " << RMSE(0) << ", " << RMSE(1) << ", "
+                 << RMSE(2) << ", " << RMSE(3) << "\n";
+            //        498	RMSE:    0.0973178, 0.0854597, 0.451267,
+            //        0.439935 499	RMSE:    0.0972256, 0.0853761, 0.450855,
+            //        0.439588
+            count++;
+        }
+        myfile.close();
     }
-    myfile.close();
-  }
 
-  else cout << "Unable to open file";
+    else
+        cout << "Unable to open file";
 
-  return 0;
+    return 0;
 }
