@@ -1,0 +1,11 @@
+# We'll use defaults from the Mozilla style, but with 4 columns indentation.
+BasedOnStyle: Mozilla
+IndentWidth: 4
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+ObjCBlockIndentWidth: 4
+SortIncludes: false
+AllowAllParametersOfDeclarationOnNextLine: true
+CommentPragmas: '^ (tag|end):'
+KeepEmptyLinesAtTheStartOfBlocks: false
+PointerAlignment: Right
