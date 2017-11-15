@@ -82,6 +82,77 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     Complete this function! Make sure you switch between lidar and radar
     measurements.
     */
+
+    cout << "\n	sensor type : " << meas_package.sensor_type_ << "\n";
+    cout << "\n	raw_measurements_ : " << meas_package.raw_measurements_ << "\n";
+    cout << "\n	timestamp : " << meas_package.timestamp_ << "\n";
+
+    /*****************************************************************************
+     *  Initialization
+     ****************************************************************************/
+    if (!is_initialized_) {
+        // state components
+        float px;
+        float py;
+        float v = 0;
+        float theta;
+        float theta_d = 0;
+
+        if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+            float rho = meas_package.raw_measurements_[0];  // range: radial
+            float phi = meas_package.raw_measurements_[1];  // bearing:
+            px = rho * cos(phi);
+            py = rho * sin(phi);
+            theta = atan2(py, px);
+
+        } else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+            // init state
+            px = meas_package.raw_measurements_[0];
+            py = meas_package.raw_measurements_[1];
+            theta = atan2(py, px);
+        }
+        x_ << px, py, v, theta, theta_d;
+        time_us_ = meas_package.timestamp_;
+
+        // done initializing, no need to predict or update
+        is_initialized_ = true;
+        return;
+    }
+
+    /*****************************************************************************
+     *  Prediction
+     ****************************************************************************/
+
+    /**
+       * Update the state transition matrix F according to the new elapsed time.
+        - Time is measured in seconds.
+       * Update the process noise covariance matrix.
+       * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
+     */
+
+    // compute the time elapsed between the current and previous measurements
+    float dt = (meas_package.timestamp_ - time_us_) / 1000000.0;
+    time_us_ = meas_package.timestamp_;
+
+    Prediction(dt);
+
+    /*****************************************************************************
+     *  Update
+     ****************************************************************************/
+
+    /**
+     * Use the sensor type to perform the update step.
+     * Update the state and covariance matrices.
+     */
+
+    // Radar updates
+    if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+        UpdateRadar(meas_package);
+    }
+    // Laser updates
+    else {
+        UpdateLidar(meas_package);
+    }
 }
 
 /**
@@ -97,6 +168,25 @@ void UKF::Prediction(double delta_t) {
     vector, x_. Predict sigma points, the state, and the state covariance
     matrix.
     */
+
+    cout << "\nPrediction() is called\n";
+    cout << "	dt = " << delta_t << "\n";
+
+    //    float dt_2 = dt * dt;
+    //    float dt_3 = dt_2 * dt;
+    //    float dt_4 = dt_3 * dt;
+    //
+    //    // Modify the F matrix so that the time is integrated
+    //    ekf_.F_(0, 2) = dt;
+    //    ekf_.F_(1, 3) = dt;
+    //
+    //    // set the process covariance matrix Q
+    //    ekf_.Q_ = MatrixXd(4, 4);
+    //    ekf_.Q_ << dt_4 / 4 * noise_ax, 0, dt_3 / 2 * noise_ax, 0, 0,
+    //        dt_4 / 4 * noise_ay, 0, dt_3 / 2 * noise_ay, dt_3 / 2 * noise_ax,
+    //        0, dt_2 * noise_ax, 0, 0, dt_3 / 2 * noise_ay, 0, dt_2 * noise_ay;
+    //
+    //    ekf_.Predict();
 }
 
 /**
