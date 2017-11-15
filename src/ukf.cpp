@@ -83,10 +83,6 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     measurements.
     */
 
-    cout << "\n	sensor type : " << meas_package.sensor_type_ << "\n";
-    cout << "\n	raw_measurements_ : " << meas_package.raw_measurements_ << "\n";
-    cout << "\n	timestamp : " << meas_package.timestamp_ << "\n";
-
     /*****************************************************************************
      *  Initialization
      ****************************************************************************/
