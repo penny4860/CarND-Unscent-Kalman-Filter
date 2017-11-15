@@ -108,6 +108,13 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
             theta = atan2(py, px);
         }
         x_ << px, py, v, theta, theta_d;
+        P_.fill(0.0);
+        P_(0, 0) = 1.0;
+        P_(1, 1) = 1.0;
+        P_(2, 2) = 1.0;
+        P_(3, 3) = 1.0;
+        P_(4, 4) = 1.0;
+
         time_us_ = meas_package.timestamp_;
 
         // done initializing, no need to predict or update
