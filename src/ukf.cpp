@@ -61,6 +61,12 @@ UKF::UKF() {
     n_aug_ = 7;
     // Sigma point spreading parameter
     lambda_ = 3 - n_aug_;
+    time_us_ = 0;
+
+    // initializing matrices
+    x_ = VectorXd(n_x_);
+    P_ = MatrixXd(n_x_, n_x_);
+    Xsig_pred_ = MatrixXd(n_aug_, n_aug_);
 }
 
 UKF::~UKF() {}
