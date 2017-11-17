@@ -213,7 +213,6 @@ void UKF::Prediction(double delta_t) {
     MatrixXd Xsig_aug = _generate_sigma_points(x_aug ,P_aug);
     cout << "Xsig_aug" << Xsig_aug << "\n";
 
-#if 0
     // 3. predict sigma points
     // create matrix with predicted sigma points as columns
     MatrixXd Xsig_pred = MatrixXd(n_x_, 2 * n_aug_ + 1);
@@ -255,8 +254,7 @@ void UKF::Prediction(double delta_t) {
 
         Xsig_pred.col(i) = x_pred;
     }
-    cout << "Xsig_pred" << Xsig_pred << "\n";
-#endif
+    cout << "Xsig_pred: \n" << Xsig_pred << "\n";
 
 }
 
