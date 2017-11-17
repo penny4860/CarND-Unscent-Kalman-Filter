@@ -362,29 +362,10 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
     // set weights
     VectorXd z_pred = _pred_measurement(Zsig);
-    VectorXd weights = _get_sigma_weights();
-
-    // measurement covariance matrix S
-    int n_z = 3;
-    MatrixXd S = MatrixXd(n_z, n_z);
-    S.fill(0.0);
-    for (int i = 0; i < 2 * n_aug_ + 1; i++) {  // 2n+1 simga points
-        // residual
-        VectorXd z_diff = Zsig.col(i) - z_pred;
-
-        // angle normalization
-        while (z_diff(1) > M_PI) z_diff(1) -= 2. * M_PI;
-        while (z_diff(1) < -M_PI) z_diff(1) += 2. * M_PI;
-
-        S = S + weights(i) * z_diff * z_diff.transpose();
-    }
-
-    // add measurement noise covariance matrix
-    MatrixXd R = MatrixXd(n_z, n_z);
-    R << std_radr_ * std_radr_, 0, 0, 0, std_radphi_ * std_radphi_, 0, 0, 0,
-        std_radrd_ * std_radrd_;
-    S = S + R;
+    MatrixXd S = _calc_measurement_cov(Zsig, z_pred);
     cout << "\n S\n" << S << "\n";
+
+
 }
 
 MatrixXd UKF::_measurement_sigma_points(void)
@@ -443,3 +424,29 @@ VectorXd UKF::_pred_measurement(MatrixXd Zsig)
 }
 
 
+MatrixXd UKF::_calc_measurement_cov(MatrixXd Zsig, VectorXd z_pred)
+{
+    VectorXd weights = _get_sigma_weights();
+
+    // measurement covariance matrix S
+    int n_z = 3;
+    MatrixXd S = MatrixXd(n_z, n_z);
+    S.fill(0.0);
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {  // 2n+1 simga points
+        // residual
+        VectorXd z_diff = Zsig.col(i) - z_pred;
+
+        // angle normalization
+        while (z_diff(1) > M_PI) z_diff(1) -= 2. * M_PI;
+        while (z_diff(1) < -M_PI) z_diff(1) += 2. * M_PI;
+
+        S = S + weights(i) * z_diff * z_diff.transpose();
+    }
+
+    // add measurement noise covariance matrix
+    MatrixXd R = MatrixXd(n_z, n_z);
+    R << std_radr_ * std_radr_, 0, 0, 0, std_radphi_ * std_radphi_, 0, 0, 0,
+        std_radrd_ * std_radrd_;
+    S = S + R;
+    return S;
+}
