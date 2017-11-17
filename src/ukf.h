@@ -113,6 +113,7 @@ private:
   VectorXd _get_sigma_weights(void);
   VectorXd _pred_measurement(MatrixXd Zsig);
   MatrixXd _calc_measurement_cov(MatrixXd Zsig, VectorXd z_pred);
+  void _update_posterior_var(VectorXd z, VectorXd z_pred, MatrixXd S, MatrixXd Zsig);
 };
 
 #endif /* UKF_H */

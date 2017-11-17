@@ -366,42 +366,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
     // 3.
     VectorXd z = meas_package.raw_measurements_;
-    // create matrix for cross correlation Tc
-    MatrixXd Tc = MatrixXd(n_x_, 3);
-    VectorXd weights = _get_sigma_weights();
-
-    // calculate cross correlation matrix
-    Tc.fill(0.0);
-    for (int i = 0; i < 2 * n_aug_ + 1; i++) {  // 2n+1 simga points
-
-        // residual
-        VectorXd z_diff = Zsig.col(i) - z_pred;
-        // angle normalization
-        while (z_diff(1) > M_PI) z_diff(1) -= 2. * M_PI;
-        while (z_diff(1) < -M_PI) z_diff(1) += 2. * M_PI;
-
-        // state difference
-        VectorXd x_diff = Xsig_pred_.col(i) - x_;
-        // angle normalization
-        while (x_diff(3) > M_PI) x_diff(3) -= 2. * M_PI;
-        while (x_diff(3) < -M_PI) x_diff(3) += 2. * M_PI;
-
-        Tc = Tc + weights(i) * x_diff * z_diff.transpose();
-    }
-
-    // Kalman gain K;
-    MatrixXd K = Tc * S.inverse();
-
-    // residual
-    VectorXd z_diff = z - z_pred;
-
-    // angle normalization
-    while (z_diff(1) > M_PI) z_diff(1) -= 2. * M_PI;
-    while (z_diff(1) < -M_PI) z_diff(1) += 2. * M_PI;
-
-    // update state mean and covariance matrix
-    x_ = x_ + K * z_diff;
-    P_ = P_ - K * S * K.transpose();
+    _update_posterior_var(z, z_pred, S, Zsig);
 
     cout << "\n	x_ : \n" << x_ << "\n";
     cout << "\n	P_ : \n" << P_ << "\n";
@@ -490,3 +455,45 @@ MatrixXd UKF::_calc_measurement_cov(MatrixXd Zsig, VectorXd z_pred)
     S = S + R;
     return S;
 }
+
+void UKF::_update_posterior_var(VectorXd z, VectorXd z_pred, MatrixXd S, MatrixXd Zsig)
+{
+    // create matrix for cross correlation Tc
+    MatrixXd Tc = MatrixXd(n_x_, 3);
+    VectorXd weights = _get_sigma_weights();
+
+    // calculate cross correlation matrix
+    Tc.fill(0.0);
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {  // 2n+1 simga points
+
+        // residual
+        VectorXd z_diff = Zsig.col(i) - z_pred;
+        // angle normalization
+        while (z_diff(1) > M_PI) z_diff(1) -= 2. * M_PI;
+        while (z_diff(1) < -M_PI) z_diff(1) += 2. * M_PI;
+
+        // state difference
+        VectorXd x_diff = Xsig_pred_.col(i) - x_;
+        // angle normalization
+        while (x_diff(3) > M_PI) x_diff(3) -= 2. * M_PI;
+        while (x_diff(3) < -M_PI) x_diff(3) += 2. * M_PI;
+
+        Tc = Tc + weights(i) * x_diff * z_diff.transpose();
+    }
+
+    // Kalman gain K;
+    MatrixXd K = Tc * S.inverse();
+
+    // residual
+    VectorXd z_diff = z - z_pred;
+
+    // angle normalization
+    while (z_diff(1) > M_PI) z_diff(1) -= 2. * M_PI;
+    while (z_diff(1) < -M_PI) z_diff(1) += 2. * M_PI;
+
+    // update state mean and covariance matrix
+    x_ = x_ + K * z_diff;
+    P_ = P_ - K * S * K.transpose();
+}
+
+
