@@ -102,6 +102,9 @@ public:
    * @param meas_package The measurement at k+1
    */
   void UpdateRadar(MeasurementPackage meas_package);
+
+private:
+  VectorXd _create_augmented_state(void);
 };
 
 #endif /* UKF_H */

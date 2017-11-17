@@ -157,6 +157,16 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 }
 
 
+VectorXd UKF::_create_augmented_state(void)
+{
+    VectorXd x_aug = VectorXd(n_aug_);
+    x_aug.head(5) = x_;
+	x_aug(5) = 0;
+	x_aug(6) = 0;
+	return x_aug;
+}
+
+
 /**
  * Predicts sigma points, the state, and the state covariance matrix.
  * @param {double} delta_t the change in time (in seconds) between the last
@@ -175,12 +185,8 @@ void UKF::Prediction(double delta_t) {
 //    cout << "	dt = " << delta_t << "\n";
 
     // 1. create augmented state, augmented covariance
-    VectorXd x_aug = VectorXd(n_aug_);
+    VectorXd x_aug = _create_augmented_state();
     MatrixXd P_aug = MatrixXd(n_aug_, n_aug_);
-
-    x_aug.head(5) = x_;
-	x_aug(5) = 0;
-	x_aug(6) = 0;
 
     P_aug.fill(0.0);
     P_aug.topLeftCorner(5, 5) = P_;
