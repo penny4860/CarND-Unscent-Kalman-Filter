@@ -232,6 +232,41 @@ MatrixXd UKF::_predict_sigma_points(MatrixXd Xsig_aug, double delta_t)
     return Xsig_pred;
 }
 
+void UKF::_predict(VectorXd *x_pred, MatrixXd *P_pred)
+{
+    VectorXd weights = VectorXd(2 * n_aug_ + 1);
+    VectorXd x = VectorXd(n_x_);
+    MatrixXd P = MatrixXd(n_x_, n_x_);
+
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+        if (i == 0)
+            weights(i) = lambda_ / (lambda_ + n_aug_);
+        else
+            weights(i) = 1 / (2 * (lambda_ + n_aug_));
+    }
+
+    // predict state mean
+    x.fill(0.0);
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+        x += weights(i) * Xsig_pred_.col(i);
+    }
+    // predict state covariance matrix
+    P.fill(0.0);
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+        // state difference
+        VectorXd x_diff = Xsig_pred_.col(i) - x;
+        // angle normalization
+        while (x_diff(3) > M_PI) x_diff(3) -= 2. * M_PI;
+        while (x_diff(3) < -M_PI) x_diff(3) += 2. * M_PI;
+
+        P = P + weights(i) * x_diff * x_diff.transpose();
+    }
+    //write result
+    *x_pred = x;
+    *P_pred = P;
+}
+
+
 /**
  * Predicts sigma points, the state, and the state covariance matrix.
  * @param {double} delta_t the change in time (in seconds) between the last
@@ -258,8 +293,8 @@ void UKF::Prediction(double delta_t) {
 
     // 3. predict sigma points
     // create matrix with predicted sigma points as columns
-    MatrixXd Xsig_pred = _predict_sigma_points(Xsig_aug, delta_t);
-    cout << "Xsig_pred: \n" << Xsig_pred << "\n";
+    Xsig_pred_ = _predict_sigma_points(Xsig_aug, delta_t);
+    _predict(&x_, &P_);
 
 }
 

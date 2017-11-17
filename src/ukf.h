@@ -108,6 +108,7 @@ private:
   MatrixXd _create_augmented_covariance(void);
   MatrixXd _generate_sigma_points(VectorXd x_aug, MatrixXd P_aug);
   MatrixXd _predict_sigma_points(MatrixXd Xsig_aug, double delta_t);
+  void _predict(VectorXd *x_pred, MatrixXd *P_pred);
 };
 
 #endif /* UKF_H */
