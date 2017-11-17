@@ -358,29 +358,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
 	// 1. Sigma Point
     // create matrix for sigma points in measurement space
-	int n_z = 3;
-    MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug_ + 1);
-    VectorXd z_pred = VectorXd(n_z);
-    MatrixXd S = MatrixXd(n_z, n_z);
-
-    // transform sigma points into measurement space
-    for (int i = 0; i < 2 * n_aug_ + 1; i++) {  // 2n+1 simga points
-
-        // extract values for better readibility
-        double p_x = Xsig_pred_(0, i);
-        double p_y = Xsig_pred_(1, i);
-        double v = Xsig_pred_(2, i);
-        double yaw = Xsig_pred_(3, i);
-
-        double v1 = cos(yaw) * v;
-        double v2 = sin(yaw) * v;
-
-        // measurement model
-        Zsig(0, i) = sqrt(p_x * p_x + p_y * p_y);  // r
-        Zsig(1, i) = atan2(p_y, p_x);              // phi
-        Zsig(2, i) =
-            (p_x * v1 + p_y * v2) / sqrt(p_x * p_x + p_y * p_y);  // r_dot
-    }
+	MatrixXd Zsig = _measurement_sigma_points();
     cout << "\nZsig\n" << Zsig << "\n";
 
 #if 0
@@ -420,3 +398,32 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 #endif
 
 }
+
+MatrixXd UKF::_measurement_sigma_points(void)
+{
+	int n_z = 3;
+    MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug_ + 1);
+    VectorXd z_pred = VectorXd(n_z);
+    MatrixXd S = MatrixXd(n_z, n_z);
+
+    // transform sigma points into measurement space
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {  // 2n+1 simga points
+
+        // extract values for better readibility
+        double p_x = Xsig_pred_(0, i);
+        double p_y = Xsig_pred_(1, i);
+        double v = Xsig_pred_(2, i);
+        double yaw = Xsig_pred_(3, i);
+
+        double v1 = cos(yaw) * v;
+        double v2 = sin(yaw) * v;
+
+        // measurement model
+        Zsig(0, i) = sqrt(p_x * p_x + p_y * p_y);  // r
+        Zsig(1, i) = atan2(p_y, p_x);              // phi
+        Zsig(2, i) =
+            (p_x * v1 + p_y * v2) / sqrt(p_x * p_x + p_y * p_y);  // r_dot
+    }
+    return Zsig;
+}
+
