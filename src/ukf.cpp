@@ -188,33 +188,8 @@ MatrixXd UKF::_generate_sigma_points(VectorXd x_aug, MatrixXd P_aug)
     return Xsig_aug;
 }
 
-/**
- * Predicts sigma points, the state, and the state covariance matrix.
- * @param {double} delta_t the change in time (in seconds) between the last
- * measurement and this one.
- */
-void UKF::Prediction(double delta_t) {
-    /**
-    TODO:
-
-    Complete this function! Estimate the object's location. Modify the state
-    vector, x_. Predict sigma points, the state, and the state covariance
-    matrix.
-    */
-
-//    cout << "\nPrediction() is called\n";
-//    cout << "	dt = " << delta_t << "\n";
-
-    // 1. create augmented state, augmented covariance
-    VectorXd x_aug = _create_augmented_state();
-    MatrixXd P_aug = _create_augmented_covariance();
-
-    // 2. generate sigma points
-    MatrixXd Xsig_aug = _generate_sigma_points(x_aug ,P_aug);
-    cout << "Xsig_aug" << Xsig_aug << "\n";
-
-    // 3. predict sigma points
-    // create matrix with predicted sigma points as columns
+MatrixXd UKF::_predict_sigma_points(MatrixXd Xsig_aug, double delta_t)
+{
     MatrixXd Xsig_pred = MatrixXd(n_x_, 2 * n_aug_ + 1);
 
     for (int i = 0; i < 2 * n_aug_ + 1; i++) {
@@ -254,6 +229,36 @@ void UKF::Prediction(double delta_t) {
 
         Xsig_pred.col(i) = x_pred;
     }
+    return Xsig_pred;
+}
+
+/**
+ * Predicts sigma points, the state, and the state covariance matrix.
+ * @param {double} delta_t the change in time (in seconds) between the last
+ * measurement and this one.
+ */
+void UKF::Prediction(double delta_t) {
+    /**
+    TODO:
+
+    Complete this function! Estimate the object's location. Modify the state
+    vector, x_. Predict sigma points, the state, and the state covariance
+    matrix.
+    */
+
+//    cout << "\nPrediction() is called\n";
+//    cout << "	dt = " << delta_t << "\n";
+
+    // 1. create augmented state, augmented covariance
+    VectorXd x_aug = _create_augmented_state();
+    MatrixXd P_aug = _create_augmented_covariance();
+
+    // 2. generate sigma points
+    MatrixXd Xsig_aug = _generate_sigma_points(x_aug ,P_aug);
+
+    // 3. predict sigma points
+    // create matrix with predicted sigma points as columns
+    MatrixXd Xsig_pred = _predict_sigma_points(Xsig_aug, delta_t);
     cout << "Xsig_pred: \n" << Xsig_pred << "\n";
 
 }
