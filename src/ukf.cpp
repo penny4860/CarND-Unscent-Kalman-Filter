@@ -362,11 +362,11 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
     // set weights
     VectorXd z_pred = _pred_measurement(Zsig);
-    cout << "\n z_pred\n" << z_pred << "\n";
-
     VectorXd weights = _get_sigma_weights();
-#if 0
+
     // measurement covariance matrix S
+    int n_z = 3;
+    MatrixXd S = MatrixXd(n_z, n_z);
     S.fill(0.0);
     for (int i = 0; i < 2 * n_aug_ + 1; i++) {  // 2n+1 simga points
         // residual
@@ -384,8 +384,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     R << std_radr_ * std_radr_, 0, 0, 0, std_radphi_ * std_radphi_, 0, 0, 0,
         std_radrd_ * std_radrd_;
     S = S + R;
-#endif
-
+    cout << "\n S\n" << S << "\n";
 }
 
 MatrixXd UKF::_measurement_sigma_points(void)
