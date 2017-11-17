@@ -359,9 +359,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 	// 1. Sigma Point
     // create matrix for sigma points in measurement space
 	MatrixXd Zsig = _measurement_sigma_points();
-    cout << "\nZsig\n" << Zsig << "\n";
 
-#if 0
     // set weights
     VectorXd weights = VectorXd(2 * n_aug_ + 1);
     double weight_0 = lambda_ / (lambda_ + n_aug_);
@@ -370,7 +368,9 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
         double weight = 0.5 / (n_aug_ + lambda_);
         weights(i) = weight;
     }
+    cout << "\n weights\n" << weights << "\n";
 
+#if 0
     // mean predicted measurement
     z_pred.fill(0.0);
     for (int i = 0; i < 2 * n_aug_ + 1; i++) {
