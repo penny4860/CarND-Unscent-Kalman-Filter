@@ -156,6 +156,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     }
 }
 
+
 /**
  * Predicts sigma points, the state, and the state covariance matrix.
  * @param {double} delta_t the change in time (in seconds) between the last
@@ -196,6 +197,49 @@ void UKF::Prediction(double delta_t) {
     }
 
     cout << "Xsig_aug" << Xsig_aug << "\n";
+
+    // 3. predict sigma points
+    // create matrix with predicted sigma points as columns
+    MatrixXd Xsig_pred = MatrixXd(n_x_, 2 * n_aug_ + 1);
+
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+        VectorXd x_sigma = Xsig_aug.col(i);
+        VectorXd x_pred(5);
+
+        double px = x_sigma(0);
+        double py = x_sigma(1);
+        double v = x_sigma(2);
+        double theta = x_sigma(3);
+        double theta_dot = x_sigma(4);
+
+        double nu_long_acc = x_sigma(5);
+        double nu_theta_acc = x_sigma(6);
+
+        if (fabs(theta_dot) < 0.001) {
+            x_pred(0) = px + v * cos(theta) * delta_t;
+            x_pred(1) = py + v * sin(theta) * delta_t;
+        } else {
+            x_pred(0) =
+                px +
+                v / theta_dot * (sin(theta + theta_dot * delta_t) - sin(theta));
+            x_pred(1) =
+                py + v / theta_dot *
+                         (-cos(theta + theta_dot * delta_t) + cos(theta));
+        }
+        x_pred(2) = v;
+        x_pred(3) = theta + theta_dot * delta_t;
+        x_pred(4) = theta_dot;
+
+        // noise addition
+        x_pred(0) += 0.5 * delta_t * delta_t * cos(theta) * nu_long_acc;
+        x_pred(1) += 0.5 * delta_t * delta_t * sin(theta) * nu_long_acc;
+        x_pred(2) += delta_t * nu_long_acc;
+        x_pred(3) += 0.5 * delta_t * delta_t * nu_theta_acc;
+        x_pred(4) += delta_t * nu_theta_acc;
+
+        Xsig_pred.col(i) = x_pred;
+    }
+    cout << "Xsig_pred" << Xsig_pred << "\n";
 
 
 }
