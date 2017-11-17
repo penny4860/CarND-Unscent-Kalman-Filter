@@ -192,9 +192,7 @@ void UKF::Prediction(double delta_t) {
     P_aug.topLeftCorner(5, 5) = P_;
     P_aug(5, 5) = std_a_ * std_a_;
     P_aug(6, 6) = std_yawdd_ * std_yawdd_;
-
-    cout << "\n	x\n" << x_ << "\n";
-    cout << "\n	x_aug\n" << x_aug;
+    cout << "\n	P_aug\n" << P_aug;
 
 #if 0
     // 2. generate sigma points
