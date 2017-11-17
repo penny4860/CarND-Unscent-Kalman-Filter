@@ -361,13 +361,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 	MatrixXd Zsig = _measurement_sigma_points();
 
     // set weights
-    VectorXd weights = VectorXd(2 * n_aug_ + 1);
-    double weight_0 = lambda_ / (lambda_ + n_aug_);
-    weights(0) = weight_0;
-    for (int i = 1; i < 2 * n_aug_ + 1; i++) {
-        double weight = 0.5 / (n_aug_ + lambda_);
-        weights(i) = weight;
-    }
+    VectorXd weights = _get_sigma_weights();
     cout << "\n weights\n" << weights << "\n";
 
 #if 0
@@ -427,3 +421,15 @@ MatrixXd UKF::_measurement_sigma_points(void)
     return Zsig;
 }
 
+
+VectorXd UKF::_get_sigma_weights(void)
+{
+    VectorXd weights = VectorXd(2 * n_aug_ + 1);
+    double weight_0 = lambda_ / (lambda_ + n_aug_);
+    weights(0) = weight_0;
+    for (int i = 1; i < 2 * n_aug_ + 1; i++) {
+        double weight = 0.5 / (n_aug_ + lambda_);
+        weights(i) = weight;
+    }
+    return weights;
+}
