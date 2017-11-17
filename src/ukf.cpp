@@ -171,8 +171,8 @@ void UKF::Prediction(double delta_t) {
     matrix.
     */
 
-    cout << "\nPrediction() is called\n";
-    cout << "	dt = " << delta_t << "\n";
+//    cout << "\nPrediction() is called\n";
+//    cout << "	dt = " << delta_t << "\n";
 
     // 1. create augmented state, augmented covariance
     VectorXd x_aug = VectorXd(n_aug_);
@@ -187,6 +187,10 @@ void UKF::Prediction(double delta_t) {
     P_aug(5, 5) = std_a_ * std_a_;
     P_aug(6, 6) = std_yawdd_ * std_yawdd_;
 
+    cout << "\n	x\n" << x_ << "\n";
+    cout << "\n	x_aug\n" << x_aug;
+
+#if 0
     // 2. generate sigma points
     MatrixXd A = P_aug.llt().matrixL();
     MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
@@ -240,7 +244,7 @@ void UKF::Prediction(double delta_t) {
         Xsig_pred.col(i) = x_pred;
     }
     cout << "Xsig_pred" << Xsig_pred << "\n";
-
+#endif
 
 }
 
