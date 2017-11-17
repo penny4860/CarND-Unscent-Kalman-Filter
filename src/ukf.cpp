@@ -174,9 +174,29 @@ void UKF::Prediction(double delta_t) {
     cout << "	dt = " << delta_t << "\n";
 
     // 1. create augmented state, augmented covariance
-    // define spreading parameter
-    VectorXd x_aug = VectorXd(7);
-    MatrixXd P_aug = MatrixXd(7, 7);
+    VectorXd x_aug = VectorXd(n_aug_);
+    MatrixXd P_aug = MatrixXd(n_aug_, n_aug_);
+
+    x_aug.head(5) = x_;
+	x_aug(5) = 0;
+	x_aug(6) = 0;
+
+    P_aug.fill(0.0);
+    P_aug.topLeftCorner(5, 5) = P_;
+    P_aug(5, 5) = std_a_ * std_a_;
+    P_aug(6, 6) = std_yawdd_ * std_yawdd_;
+
+    // 2. generate sigma points
+    MatrixXd A = P_aug.llt().matrixL();
+    MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
+    Xsig_aug.col(0) = x_aug;
+    for (int i = 0; i < n_aug_; i++) {
+        Xsig_aug.col(i + 1) = x_aug + sqrt(lambda_ + n_aug_) * A.col(i);
+        Xsig_aug.col(i + 1 + n_aug_) = x_aug - sqrt(lambda_ + n_aug_) * A.col(i);
+    }
+
+    cout << "Xsig_aug" << Xsig_aug << "\n";
+
 
 }
 
