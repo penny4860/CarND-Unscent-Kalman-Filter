@@ -339,7 +339,6 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 	MatrixXd yt = y.transpose();
 	MatrixXd nis = yt * Si * y;
 	nis_ = nis(0, 0);
-	cout << "\n	NIS = " << nis_;
 }
 
 /**
@@ -364,13 +363,16 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     VectorXd z_pred = _pred_measurement(Zsig);
     MatrixXd S = _calc_measurement_cov(Zsig, z_pred);
 
-    // 3.
+    // 3. Posterior (state, covariance)
     VectorXd z = meas_package.raw_measurements_;
     _update_posterior_var(z, z_pred, S, Zsig);
 
-    cout << "\n	x_ : \n" << x_ << "\n";
-    cout << "\n	P_ : \n" << P_ << "\n";
-
+    // 4. NIS
+	VectorXd y = z - z_pred;
+	MatrixXd yt = y.transpose();
+	MatrixXd Si = S.inverse();
+	MatrixXd nis = yt * Si * y;
+	nis_ = nis(0, 0);
 }
 
 MatrixXd UKF::_measurement_sigma_points(void)
