@@ -360,11 +360,10 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     // create matrix for sigma points in measurement space
 	MatrixXd Zsig = _measurement_sigma_points();
 
-    // set weights
+    // 2. measurement space variable (z_pred, S)
     VectorXd z_pred = _pred_measurement(Zsig);
     MatrixXd S = _calc_measurement_cov(Zsig, z_pred);
     cout << "\n S\n" << S << "\n";
-
 
 }
 
