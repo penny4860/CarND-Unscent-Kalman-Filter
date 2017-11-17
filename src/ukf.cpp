@@ -355,4 +355,68 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
     You'll also need to calculate the radar NIS.
     */
+
+	// 1. Sigma Point
+    // create matrix for sigma points in measurement space
+	int n_z = 3;
+    MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug_ + 1);
+    VectorXd z_pred = VectorXd(n_z);
+    MatrixXd S = MatrixXd(n_z, n_z);
+
+    // transform sigma points into measurement space
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {  // 2n+1 simga points
+
+        // extract values for better readibility
+        double p_x = Xsig_pred_(0, i);
+        double p_y = Xsig_pred_(1, i);
+        double v = Xsig_pred_(2, i);
+        double yaw = Xsig_pred_(3, i);
+
+        double v1 = cos(yaw) * v;
+        double v2 = sin(yaw) * v;
+
+        // measurement model
+        Zsig(0, i) = sqrt(p_x * p_x + p_y * p_y);  // r
+        Zsig(1, i) = atan2(p_y, p_x);              // phi
+        Zsig(2, i) =
+            (p_x * v1 + p_y * v2) / sqrt(p_x * p_x + p_y * p_y);  // r_dot
+    }
+    cout << "\nZsig\n" << Zsig << "\n";
+
+#if 0
+    // set weights
+    VectorXd weights = VectorXd(2 * n_aug_ + 1);
+    double weight_0 = lambda_ / (lambda_ + n_aug_);
+    weights(0) = weight_0;
+    for (int i = 1; i < 2 * n_aug_ + 1; i++) {
+        double weight = 0.5 / (n_aug_ + lambda_);
+        weights(i) = weight;
+    }
+
+    // mean predicted measurement
+    z_pred.fill(0.0);
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+        z_pred = z_pred + weights(i) * Zsig.col(i);
+    }
+
+    // measurement covariance matrix S
+    S.fill(0.0);
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {  // 2n+1 simga points
+        // residual
+        VectorXd z_diff = Zsig.col(i) - z_pred;
+
+        // angle normalization
+        while (z_diff(1) > M_PI) z_diff(1) -= 2. * M_PI;
+        while (z_diff(1) < -M_PI) z_diff(1) += 2. * M_PI;
+
+        S = S + weights(i) * z_diff * z_diff.transpose();
+    }
+
+    // add measurement noise covariance matrix
+    MatrixXd R = MatrixXd(n_z, n_z);
+    R << std_radr_ * std_radr_, 0, 0, 0, std_radphi_ * std_radphi_, 0, 0, 0,
+        std_radrd_ * std_radrd_;
+    S = S + R;
+#endif
+
 }
