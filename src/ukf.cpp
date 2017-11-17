@@ -64,8 +64,6 @@ UKF::UKF() {
     time_us_ = 0;
 
     // initializing matrices
-    x_ = VectorXd(n_x_);
-    P_ = MatrixXd(n_x_, n_x_);
     Xsig_pred_ = MatrixXd(n_aug_, n_aug_);
 }
 
@@ -158,6 +156,117 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     }
 }
 
+
+VectorXd UKF::_create_augmented_state(void)
+{
+    VectorXd x_aug = VectorXd(n_aug_);
+    x_aug.head(5) = x_;
+	x_aug(5) = 0;
+	x_aug(6) = 0;
+	return x_aug;
+}
+
+MatrixXd UKF::_create_augmented_covariance(void)
+{
+    MatrixXd P_aug = MatrixXd(n_aug_, n_aug_);
+    P_aug.fill(0.0);
+    P_aug.topLeftCorner(5, 5) = P_;
+    P_aug(5, 5) = std_a_ * std_a_;
+    P_aug(6, 6) = std_yawdd_ * std_yawdd_;
+    return P_aug;
+}
+
+MatrixXd UKF::_generate_sigma_points(VectorXd x_aug, MatrixXd P_aug)
+{
+    MatrixXd A = P_aug.llt().matrixL();
+    MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
+    Xsig_aug.col(0) = x_aug;
+    for (int i = 0; i < n_aug_; i++) {
+        Xsig_aug.col(i + 1) = x_aug + sqrt(lambda_ + n_aug_) * A.col(i);
+        Xsig_aug.col(i + 1 + n_aug_) = x_aug - sqrt(lambda_ + n_aug_) * A.col(i);
+    }
+    return Xsig_aug;
+}
+
+MatrixXd UKF::_predict_sigma_points(MatrixXd Xsig_aug, double delta_t)
+{
+    MatrixXd Xsig_pred = MatrixXd(n_x_, 2 * n_aug_ + 1);
+
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+        VectorXd x_sigma = Xsig_aug.col(i);
+        VectorXd x_pred(5);
+
+        double px = x_sigma(0);
+        double py = x_sigma(1);
+        double v = x_sigma(2);
+        double theta = x_sigma(3);
+        double theta_dot = x_sigma(4);
+
+        double nu_long_acc = x_sigma(5);
+        double nu_theta_acc = x_sigma(6);
+
+        if (fabs(theta_dot) < 0.001) {
+            x_pred(0) = px + v * cos(theta) * delta_t;
+            x_pred(1) = py + v * sin(theta) * delta_t;
+        } else {
+            x_pred(0) =
+                px +
+                v / theta_dot * (sin(theta + theta_dot * delta_t) - sin(theta));
+            x_pred(1) =
+                py + v / theta_dot *
+                         (-cos(theta + theta_dot * delta_t) + cos(theta));
+        }
+        x_pred(2) = v;
+        x_pred(3) = theta + theta_dot * delta_t;
+        x_pred(4) = theta_dot;
+
+        // noise addition
+        x_pred(0) += 0.5 * delta_t * delta_t * cos(theta) * nu_long_acc;
+        x_pred(1) += 0.5 * delta_t * delta_t * sin(theta) * nu_long_acc;
+        x_pred(2) += delta_t * nu_long_acc;
+        x_pred(3) += 0.5 * delta_t * delta_t * nu_theta_acc;
+        x_pred(4) += delta_t * nu_theta_acc;
+
+        Xsig_pred.col(i) = x_pred;
+    }
+    return Xsig_pred;
+}
+
+void UKF::_predict(VectorXd *x_pred, MatrixXd *P_pred)
+{
+    VectorXd weights = VectorXd(2 * n_aug_ + 1);
+    VectorXd x = VectorXd(n_x_);
+    MatrixXd P = MatrixXd(n_x_, n_x_);
+
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+        if (i == 0)
+            weights(i) = lambda_ / (lambda_ + n_aug_);
+        else
+            weights(i) = 1 / (2 * (lambda_ + n_aug_));
+    }
+
+    // predict state mean
+    x.fill(0.0);
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+        x += weights(i) * Xsig_pred_.col(i);
+    }
+    // predict state covariance matrix
+    P.fill(0.0);
+    for (int i = 0; i < 2 * n_aug_ + 1; i++) {
+        // state difference
+        VectorXd x_diff = Xsig_pred_.col(i) - x;
+        // angle normalization
+        while (x_diff(3) > M_PI) x_diff(3) -= 2. * M_PI;
+        while (x_diff(3) < -M_PI) x_diff(3) += 2. * M_PI;
+
+        P = P + weights(i) * x_diff * x_diff.transpose();
+    }
+    //write result
+    *x_pred = x;
+    *P_pred = P;
+}
+
+
 /**
  * Predicts sigma points, the state, and the state covariance matrix.
  * @param {double} delta_t the change in time (in seconds) between the last
@@ -172,24 +281,23 @@ void UKF::Prediction(double delta_t) {
     matrix.
     */
 
-    cout << "\nPrediction() is called\n";
-    cout << "	dt = " << delta_t << "\n";
+//    cout << "\nPrediction() is called\n";
+//    cout << "	dt = " << delta_t << "\n";
 
-    //    float dt_2 = dt * dt;
-    //    float dt_3 = dt_2 * dt;
-    //    float dt_4 = dt_3 * dt;
-    //
-    //    // Modify the F matrix so that the time is integrated
-    //    ekf_.F_(0, 2) = dt;
-    //    ekf_.F_(1, 3) = dt;
-    //
-    //    // set the process covariance matrix Q
-    //    ekf_.Q_ = MatrixXd(4, 4);
-    //    ekf_.Q_ << dt_4 / 4 * noise_ax, 0, dt_3 / 2 * noise_ax, 0, 0,
-    //        dt_4 / 4 * noise_ay, 0, dt_3 / 2 * noise_ay, dt_3 / 2 * noise_ax,
-    //        0, dt_2 * noise_ax, 0, 0, dt_3 / 2 * noise_ay, 0, dt_2 * noise_ay;
-    //
-    //    ekf_.Predict();
+    // 1. create augmented state, augmented covariance
+    VectorXd x_aug = _create_augmented_state();
+    MatrixXd P_aug = _create_augmented_covariance();
+
+    // 2. generate sigma points
+    MatrixXd Xsig_aug = _generate_sigma_points(x_aug ,P_aug);
+
+    // 3. predict sigma points
+    // create matrix with predicted sigma points as columns
+    Xsig_pred_ = _predict_sigma_points(Xsig_aug, delta_t);
+    _predict(&x_, &P_);
+
+//    cout << "\npred state : \n"<< x_ << "\n";
+//    cout << P_;
 }
 
 /**
