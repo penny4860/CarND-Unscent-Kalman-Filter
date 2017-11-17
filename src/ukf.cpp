@@ -197,9 +197,6 @@ void UKF::Prediction(double delta_t) {
     VectorXd x_aug = _create_augmented_state();
     MatrixXd P_aug = _create_augmented_covariance();
 
-    cout << "\n	P_aug\n" << P_aug;
-
-#if 0
     // 2. generate sigma points
     MatrixXd A = P_aug.llt().matrixL();
     MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
@@ -208,9 +205,9 @@ void UKF::Prediction(double delta_t) {
         Xsig_aug.col(i + 1) = x_aug + sqrt(lambda_ + n_aug_) * A.col(i);
         Xsig_aug.col(i + 1 + n_aug_) = x_aug - sqrt(lambda_ + n_aug_) * A.col(i);
     }
-
     cout << "Xsig_aug" << Xsig_aug << "\n";
 
+#if 0
     // 3. predict sigma points
     // create matrix with predicted sigma points as columns
     MatrixXd Xsig_pred = MatrixXd(n_x_, 2 * n_aug_ + 1);
