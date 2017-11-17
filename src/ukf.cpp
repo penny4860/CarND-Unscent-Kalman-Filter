@@ -64,8 +64,6 @@ UKF::UKF() {
     time_us_ = 0;
 
     // initializing matrices
-    x_ = VectorXd(n_x_);
-    P_ = MatrixXd(n_x_, n_x_);
     Xsig_pred_ = MatrixXd(n_aug_, n_aug_);
 }
 
@@ -175,21 +173,11 @@ void UKF::Prediction(double delta_t) {
     cout << "\nPrediction() is called\n";
     cout << "	dt = " << delta_t << "\n";
 
-    //    float dt_2 = dt * dt;
-    //    float dt_3 = dt_2 * dt;
-    //    float dt_4 = dt_3 * dt;
-    //
-    //    // Modify the F matrix so that the time is integrated
-    //    ekf_.F_(0, 2) = dt;
-    //    ekf_.F_(1, 3) = dt;
-    //
-    //    // set the process covariance matrix Q
-    //    ekf_.Q_ = MatrixXd(4, 4);
-    //    ekf_.Q_ << dt_4 / 4 * noise_ax, 0, dt_3 / 2 * noise_ax, 0, 0,
-    //        dt_4 / 4 * noise_ay, 0, dt_3 / 2 * noise_ay, dt_3 / 2 * noise_ax,
-    //        0, dt_2 * noise_ax, 0, 0, dt_3 / 2 * noise_ay, 0, dt_2 * noise_ay;
-    //
-    //    ekf_.Predict();
+    // 1. create augmented state, augmented covariance
+    // define spreading parameter
+    VectorXd x_aug = VectorXd(7);
+    MatrixXd P_aug = MatrixXd(7, 7);
+
 }
 
 /**
