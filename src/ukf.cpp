@@ -296,6 +296,8 @@ void UKF::Prediction(double delta_t) {
     Xsig_pred_ = _predict_sigma_points(Xsig_aug, delta_t);
     _predict(&x_, &P_);
 
+//    cout << "\npred state : \n"<< x_ << "\n";
+//    cout << P_;
 }
 
 /**
