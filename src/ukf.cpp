@@ -336,8 +336,9 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 	MatrixXd I = MatrixXd::Identity(x_size, x_size);
 	P_ = (I - K * H) * P_;
 
-	VectorXd yt = y.transpose();
-	double nis = yt * Si * y;
+	MatrixXd yt = y.transpose();
+	MatrixXd nis = yt * Si * y;
+	double nis_scalar = nis(0, 0);
 	cout << "\n	NIS = " << nis;
 }
 
