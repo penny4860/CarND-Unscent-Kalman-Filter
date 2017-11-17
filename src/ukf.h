@@ -106,6 +106,7 @@ public:
 private:
   VectorXd _create_augmented_state(void);
   MatrixXd _create_augmented_covariance(void);
+  MatrixXd _generate_sigma_points(VectorXd x_aug, MatrixXd P_aug);
 };
 
 #endif /* UKF_H */

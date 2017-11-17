@@ -176,6 +176,18 @@ MatrixXd UKF::_create_augmented_covariance(void)
     return P_aug;
 }
 
+MatrixXd UKF::_generate_sigma_points(VectorXd x_aug, MatrixXd P_aug)
+{
+    MatrixXd A = P_aug.llt().matrixL();
+    MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
+    Xsig_aug.col(0) = x_aug;
+    for (int i = 0; i < n_aug_; i++) {
+        Xsig_aug.col(i + 1) = x_aug + sqrt(lambda_ + n_aug_) * A.col(i);
+        Xsig_aug.col(i + 1 + n_aug_) = x_aug - sqrt(lambda_ + n_aug_) * A.col(i);
+    }
+    return Xsig_aug;
+}
+
 /**
  * Predicts sigma points, the state, and the state covariance matrix.
  * @param {double} delta_t the change in time (in seconds) between the last
@@ -198,13 +210,7 @@ void UKF::Prediction(double delta_t) {
     MatrixXd P_aug = _create_augmented_covariance();
 
     // 2. generate sigma points
-    MatrixXd A = P_aug.llt().matrixL();
-    MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
-    Xsig_aug.col(0) = x_aug;
-    for (int i = 0; i < n_aug_; i++) {
-        Xsig_aug.col(i + 1) = x_aug + sqrt(lambda_ + n_aug_) * A.col(i);
-        Xsig_aug.col(i + 1 + n_aug_) = x_aug - sqrt(lambda_ + n_aug_) * A.col(i);
-    }
+    MatrixXd Xsig_aug = _generate_sigma_points(x_aug ,P_aug);
     cout << "Xsig_aug" << Xsig_aug << "\n";
 
 #if 0
