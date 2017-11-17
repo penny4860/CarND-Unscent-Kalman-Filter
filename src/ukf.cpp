@@ -166,15 +166,6 @@ VectorXd UKF::_create_augmented_state(void)
 	return x_aug;
 }
 
-MatrixXd UKF::_create_augmented_covariance(void)
-{
-    MatrixXd P_aug = MatrixXd(n_aug_, n_aug_);
-    P_aug.fill(0.0);
-    P_aug.topLeftCorner(5, 5) = P_;
-    P_aug(5, 5) = std_a_ * std_a_;
-    P_aug(6, 6) = std_yawdd_ * std_yawdd_;
-    return P_aug;
-}
 
 /**
  * Predicts sigma points, the state, and the state covariance matrix.
@@ -197,6 +188,10 @@ void UKF::Prediction(double delta_t) {
     VectorXd x_aug = _create_augmented_state();
     MatrixXd P_aug = MatrixXd(n_aug_, n_aug_);
 
+    P_aug.fill(0.0);
+    P_aug.topLeftCorner(5, 5) = P_;
+    P_aug(5, 5) = std_a_ * std_a_;
+    P_aug(6, 6) = std_yawdd_ * std_yawdd_;
 
     cout << "\n	x\n" << x_ << "\n";
     cout << "\n	x_aug\n" << x_aug;

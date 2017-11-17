@@ -105,7 +105,6 @@ public:
 
 private:
   VectorXd _create_augmented_state(void);
-  MatrixXd _create_augmented_covariance(void);
 };
 
 #endif /* UKF_H */
